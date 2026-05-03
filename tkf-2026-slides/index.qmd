@@ -301,7 +301,7 @@ access the data.
   classes:
   - profile::apache
   - profile::monitoring::apache_exporter
-    ```
+  ```
 :::
 ::: notes
 To ensure comprehensive monitoring without creating alert fatigue, we take a
