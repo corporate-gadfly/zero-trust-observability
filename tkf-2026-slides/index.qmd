@@ -177,7 +177,7 @@ The site manifest is just a thin layer that looks up classes based on the role.
   classes:
   - profile::apache
   - profile::monitoring::apache_exporter
-    ```
+  ```
 
 - Hiera configuration
   ```{.yaml filename="excerpt from hiera.yaml"}
