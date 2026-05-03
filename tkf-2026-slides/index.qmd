@@ -1,0 +1,466 @@
+---
+title: "Automated observability with Puppet in a zero-trust environment"
+format:
+  revealjs:
+    filters:
+      - roughnotation
+    theme: [dracula, custom.scss]
+    slide-number: true
+    logo: images/tkf-logo-title-white@2x-400x126.webp
+    center: true
+    title-slide-attributes:
+      data-background-image: "images/convocation-hall.png"
+      data-background-size: contain
+    footer: '[TechKnowFile](https://techknowfile.utoronto.ca/)'
+---
+
+##
+
+::: {.r-fit-text}
+Haroon Rafique
+:::
+
+::: {style="font-size: 1.5em;"}
+Manager  
+Development and Operations  
+Student Information Systems, ITS
+:::
+
+::: notes
+Quick introduction and context for this session.
+Set expectation: practical patterns, working code, and production-minded trade-offs.
+:::
+
+##
+
+::: {style="font-size: 1.9em; font-weight: bold; line-height: 1.2; text-align: left;"}
+_"If you want everything to be familiar, you will never learn anything new, because it can't be significantly different from what you already know."_
+:::
+
+::: {style="font-size: 0.9em; text-align: right; margin-top: 1em;"}
+— Rich Hickey
+:::
+::: notes
+I love this quote because it applies directly to how we build infrastructure.
+We keep copy-pasting the same scripts and hand-maintaining files because it is
+what we know. But that familiarity is actively holding us back from scaling.
+To fix it, we have to recognize where we are getting stuck.
+:::
+---
+
+## The Toil Trap
+
+::: {.incremental .highlight-last}
+- Manual monitoring target updates
+- Config drift from reality 
+- Onboarding friction due to cert. management
+- YAML sprawl
+:::
+
+::: notes
+Anchor on shared pain: most teams still run observability as a manual process.
+New servers require manual monitoring target updates.
+Certification management is a pain point.
+Configuration is scattered across scripts, manifests, and YAML files, making
+it hard to maintain and audit.
+This is the bottleneck we want to remove.
+:::
+
+## Zero-Toil Architecture
+
+::: {.incremental .highlight-last}
+- Self-registration
+- Automated discovery
+- Identity-driven
+- Zero-trust
+:::
+
+::: notes
+To escape the toil trap, we must make observability and security native
+properties of the system. And in this case self-registration and automated
+discovery go hand in hand.
+Let's look at the five patterns that make this target state possible.
+:::
+
+## Implementation Blueprint
+
+::: {.incremental .highlight-last}
+- Classify nodes automatically during CSR signing
+- Separate logic from data using Hiera roles
+- Automate service discovery with exported resources
+- Secure metrics scraping with Caddy and mTLS
+- Standardize monitoring with layered exporter profiles
+:::
+
+::: notes
+This slide serves as our roadmap and contract for the rest of the presentation.
+Every implementation pattern we cover next maps directly back to these five
+foundational pillars
+:::
+
+## Pattern 1: CSR Classification
+
+::: columns
+
+::: {.column width="62%"}
+::: {.incremental .highlight-last}
+- Immutable identity requested during provisioning via CSR
+- Cryptographic proof stored in the certificate extensions
+- Tamper-proof classification secure against agent-side overrides
+- Automated autosigning (optionally) enabled by secure policy scripts
+:::
+:::
+
+::: {.column width="38%"}
+::: {.fragment .fade-in-then-semi-out style="text-align: left;"}
+What is `pp_role` and what goes into it?
+
+- roles
+  - monitoring_scraper
+  - webserver
+
+Hiera data:
+```{.text code-line-numbers="false"}
+roles
+├── monitoring_scraper.yaml
+└── webserver.yaml
+```
+:::
+:::
+:::
+
+::: notes
+Roles and profiles is not a feature provided by Puppet itself.
+It is a best-practice design pattern for Puppet that provides an interface between
+your business logic and reusable Puppet modules. At the moment of provisioning,
+the node requests its specific role via the pp_role certificate extension.
+This embeds its identity at birth and creates a tamper-proof source of truth that
+agents cannot override. By keeping node intent attached directly to node identity,
+we eliminate central merge conflicts in static files and build a pipeline
+perfectly suited for dynamic, ephemeral fleets.
+:::
+
+## Pattern 2: Pure Data Roles
+
+::: {.incremental .highlight-last}
+- **Zero logic** inside site manifests or node definitions
+  ```{.ruby filename="manifests/site.pp"}
+  node default {
+    # Lookup classes from Hiera based on pp_role
+    # The pp_role comes from csr_attributes.yaml on the agent
+    lookup('classes', Array[String], 'unique').include
+  }
+  ```
+
+- CSR Extension attributes
+  ```{.yaml filename="/etc/puppetlabs/puppet/csr_attributes.yaml"}
+  ---
+  extension_requests:
+    pp_role: webserver
+  ```
+
+:::
+
+::: notes
+The node's role is purely data-driven and attached to the certificate.
+The site manifest is just a thin layer that looks up classes based on the role.
+:::
+
+##
+
+::: {.incremental .highlight-last}
+- **Hiera lookup** determines config based on `pp_role`
+  ```{.yaml filename="data/roles/webserver.yaml"}
+  ---
+  # Webserver role - Apache with monitoring
+  # Applied to nodes with pp_role=webserver in csr_attributes.yaml
+  classes:
+  - profile::apache
+  - profile::monitoring::apache_exporter
+    ```
+
+- Hiera configuration
+  ```{.yaml filename="excerpt from hiera.yaml"}
+  hierarchy:
+  - name: "Per-role data (from CSR attributes)"
+    path: "roles/%{trusted.extensions.pp_role}.yaml"
+  ```
+:::
+
+## Pattern 3: Auto-Discovery
+::: {.incremental .highlight-last}
+- **Exported resources** publish state to OpenVoxDB
+  ```ruby
+  @@file { "/etc/vmagent/targets.d/${facts['networking']['fqdn']}_${name}.yaml":
+    ensure  => file,
+    content => @("EOT"),
+      # Managed by Puppet
+      - targets:
+          - ${facts['networking']['fqdn']}:9090/${name}/metrics
+        labels:
+          job: ${name}
+          instance: ${facts['networking']['fqdn']}
+          exporter: ${name}
+      | EOT
+    tag     => 'vmagent_target',
+  }
+  ```
+:::
+
+::: notes
+**This is the key automation mechanism of the entire talk. If you remember only
+one thing from today, make it this pattern.**
+
+Instead of manually updating static files, nodes now declare their own state at birth.
+When a node compiles its catalog, it exports its scrape target and stores it into OpenVoxDB.
+:::
+
+##
+::: {.incremental .highlight-last}
+- **Dynamic collection** gathers all active targets
+  ```ruby
+  # Collect all exported vmagent targets from other nodes
+  File <<| tag == 'vmagent_target' |>>
+  ```
+:::
+
+::: notes
+The server scraping the metrics, then queries OpenVoxDB, and dynamically pulls in
+all active targets. This eliminates the need for human intervention
+when scaling up new infrastructure.
+:::
+
+## Pattern 4: Zero-Trust mTLS
+::: {.incremental .highlight-last}
+- **Caddy** acts as a _sidecar_ reverse proxy and mTLS server
+  ```{.text filename="excerpt from Caddyfile"}
+  # Authenticate via Puppet CA with mTLS
+  tls /etc/caddy/node-cert.pem /etc/caddy/node-key.pem {
+    client_auth {
+      mode require_and_verify
+      trust_pool file /etc/caddy/puppet-ca.pem
+    }
+  }
+  ```
+- **Import** exporter configurations
+  ```text
+  import /etc/caddy/conf.d/*.caddy
+  ```
+:::
+::: notes
+To achieve zero-trust security by default, we cannot have metrics exposed over
+plaintext HTTP. We use the existing Puppet CA to establish mutual TLS between
+metrics scraper and our exporters.
+:::
+
+##
+
+::: {.incremental .highlight-last}
+- **Proxy** the exporter traffic
+  ```{.text filename="excerpt from apache.caddy"}
+  handle_path /apache* {
+    reverse_proxy localhost:9117
+  }
+  ```
+- Only allow **legitimate** scrapers
+  ```caddyfile
+  @authorized_scrapers_snippet {
+    expression \
+      {tls_client_subject} == "CN=vmagent.local"
+  }
+  ```
+- **Block** unauthorized scrapers
+  ```caddyfile
+  handle {
+   abort
+  }
+  ```
+:::
+
+::: notes
+By placing Caddy as a lightweight sidecar, we secure the metrics path with zero
+changes to the exporter code itself, ensuring only authenticated scrapers can
+access the data.
+:::
+
+## Pattern 5: Layered Observability
+::: {.incremental .highlight-last}
+- **Common** profile applies to all nodes
+  ```{.yaml filename="data/common.yaml"}
+  classes:
+  - profile::base
+  ```
+- **Baseline metrics** applied to every node
+  ```{.ruby filename="site/profile/manifests/base.pp"}
+  class profile::base {
+    include profile::monitoring::node_exporter
+  }
+  ```
+- **Role-specific** exporters added based on workload
+  ```{.yaml filename="roles/webserver.yaml"}
+  classes:
+  - profile::apache
+  - profile::monitoring::apache_exporter
+    ```
+:::
+::: notes
+To ensure comprehensive monitoring without creating alert fatigue, we take a
+layered approach to our exporters. Every single node in the fleet automatically
+receives a baseline OS-level node exporter via our base profile. Then, we use
+our Hiera roles to dynamically layer on specialized exporters—like
+PostgreSQL or NGINX—only on the nodes that are actually running those specific
+workloads.
+By keeping our baseline and role profiles perfectly aligned with our Hiera roles,
+we enforce strict, predictable naming conventions and labels across the entire fleet.
+we enforce strict, predictable naming conventions and labels across the entire fleet.
+This is what finally allows us to use a single, unified query and dashboard model
+across all of our environments, drastically reducing clutter in the visualization
+layer.
+:::
+
+
+## Components in This Reference Stack
+
+::: {.incremental .highlight-last}
+- [OpenVox/OpenVox Server]{.rn-fragment rn-type=circle rn-color=yellow rn-strokeWidth=3 rn-padding=30} for policy and certificates
+- [OpenVoxDB]{.rn-fragment rn-type=box rn-color=yellow rn-strokeWidth=3} for exported resource inventory
+- [VictoriaMetrics]{.rn-fragment rn-type=highlight rn-color=purple} for metrics storage
+- [Vmagent]{.rn-fragment rn-type=underline rn-color=red} for metrics scraping
+- [Grafana]{.rn-fragment rn-type=highlight rn-color=tomato} for visualization
+:::
+
+::: notes
+Keep this slide fast; details come later.
+The goal is to orient the audience before implementation deep dive.
+:::
+
+## The Automated Pipeline
+
+::: {.columns}
+::: {.column width="50%"}
+### Host Lifecycle {.fragment fragment-index=1}
+
+::: {.fragment fragment-index=1}
+- **Host boots** and starts the OpenVox agent.
+:::
+::: {.fragment fragment-index=3}
+- **Agent submits** CSR with role intent.
+:::
+::: {.fragment fragment-index=5}
+- **Host applies** role-specific profiles.
+:::
+::: {.fragment fragment-index=7}
+- **Exporters publish** scrape endpoints.
+:::
+:::
+
+::: {.column width="50%"}
+### System Response {.fragment fragment-index=2}
+
+::: {.fragment fragment-index=2}
+- **CA auto-signs** based on secure policy.
+:::
+::: {.fragment fragment-index=4}
+- **Hiera maps** data classes to the host.
+:::
+::: {.fragment fragment-index=6}
+- **OpenVoxDB stores** the exported assets.
+:::
+::: {.fragment fragment-index=8}
+- **Vmagent polls** the target automatically.
+:::
+:::
+:::
+
+## Security Guardrails For Production
+
+- **Strict validation** of role-bearing CSRs.
+- **Role restrictions** to prevent privilege escalation.
+- **Least-privilege paths** for authorized scrapers only.
+- **Continuous auditing** of exported resources.
+
+::: notes
+We have to be explicit: complete automation must still be strictly governed.
+Guardrails like policy-based autosigning scripts prevent rogue agents from
+spoofing a privileged role or overexposing sensitive metric endpoints.
+You can have absolute speed and zero-touch workflows without leaving your
+infrastructure wide open.
+:::
+
+## Does It Work?
+
+::: {.incremental .highlight-last}
+- **Initial State:** Verify current targets are up.
+- **The Trigger:** Provision a new webserver node.
+- **The Magic:** Watch Puppet execute automatic classification.
+- **The Result:** The new scrape target populates automatically.
+- **The Payoff:** View the live Grafana dashboards.
+:::
+
+::: notes
+To prove this isn't just theoretical vaporware, we are going to do a live run.
+We will spin up a fresh node from scratch and watch it self-register, classify,
+and populate directly into Grafana without us touching a single configuration file.
+:::
+
+## {.center}
+
+::: {.r-fit-text}
+Demo
+:::
+
+## Operational Impact
+
+- **Scales infinitely** from isolated labs to massive production fleets.
+- **Adapts dynamically** to volatile node churn and auto-scaling.
+- **Accelerates visibility** by establishing instant scrape targets.
+- **Maintains effort** keeping operational overhead flat as nodes scale.
+
+::: notes
+To tie this back to the operational economics: this architecture completely breaks
+the linear relationship between the size of your fleet and the size of your
+monitoring workload. By removing manual interventions, we ensure that adding
+1,000 new nodes requires the exact same operator effort as adding a single host,
+while actively lowering the rate of outages caused by human configuration drift.
+:::
+
+## Engineering Anti-Patterns
+
+- **Mutable scripts** installing runtime packages
+- **Floating tags** using `latest` in production
+- **Hard-coded credentials** in compose files
+- **Copy-pasted logic** repeated across services
+- **Ungoverned attributes** trusted without policy controls
+
+::: notes
+To wrap things up, these are the real-world traps I ran into while building out
+this live demo environment. Treating this slide as a transition into future
+hardening work will ensure your automation doesn't accidentally introduce
+security blind spots or fragile dependencies.
+:::
+
+## Key Takeaways
+
+- **Automate observability** from the exact second a node boot
+- **Eliminate bottlenecks** by moving classification to CSRs.
+- **Drop manual** updates using native exported resources
+- **Recycle existing security** to achieve zero-trust mTLS
+- **Scale your infrastructure** without increasing team toil
+
+::: notes
+To wrap up today's session, these are the core architectural pillars I hope you
+take back to your teams. I invite you all to follow up with me to look at the
+repository, review the Caddy and Puppet configurations, and discuss how to
+apply these execution patterns to your own environments.
+:::
+
+## {.center}
+
+::: {.r-fit-text}
+Questions?
+:::
+
+## Git Repo
+
+![](images/zero-trust-observability.svg){width="30%"}
+

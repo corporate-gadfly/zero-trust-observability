@@ -1,0 +1,90 @@
+/*-- scss:defaults --*/
+
+/*-- scss:rules --*/
+
+#title-slide,
+#title-slide.quarto-title-block {
+  text-align: left;
+  display: flex !important;
+  flex-direction: column;
+  justify-content: flex-start !important;
+  align-items: flex-start !important;
+  padding-top: 3rem;
+  padding-left: 3rem;
+}
+
+#title-slide .title {
+  color: #ffffff !important;
+  margin-top: 0;
+  margin-left: 0;
+}
+
+.reveal .slide-logo {
+  display: block !important;
+  position: fixed !important;
+  top: 0 !important;
+  right: 10px !important;
+  bottom: auto !important;
+  width: auto !important;
+  height: 100% !important;
+  max-height: 8% !important;
+  max-width: none !important;
+}
+
+body:has(#title-slide.present) .slide-logo {
+  display: none !important;
+}
+
+.highlight-last  {
+  /* All items that have appeared, but are not active, become faded */
+  .fragment.visible {
+    opacity: 0.1;
+    transition: opacity 0.5s ease;
+  }
+
+  /* The active fragment stays fully opaque and takes the theme's body text color */
+  .current-fragment {
+    color: $body-color !important;
+    opacity: 1 !important;
+  }
+
+  /* Allows RoughNotation and incremental fragments to work concurrently.
+     Keeps the parent list item bright when the RoughNotation is drawing */
+  li.fragment:has(.current-fragment) {
+    color: $body-color !important;
+    opacity: 1 !important;
+  }
+}
+
+/* use heading color for Fit Text */
+.reveal .r-fit-text {
+  color: $presentation-heading-color !important;
+  text-align: center;
+}
+
+/* used on Git Repo slide to center QR code */
+.reveal .slides section.center {
+  text-align: center;
+}
+
+/* slightly lighter background color for code listings */
+.reveal div.sourceCode pre,
+.reveal pre.sourceCode {
+  background-color: #4a4f66 !important;
+}
+
+/* Force full opacity when printing/exporting. */
+@media print {
+  .reveal .slides section .fragment {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+  }
+}
+
+html.print-pdf .reveal .slides section .fragment {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+}
+
