@@ -263,14 +263,14 @@ metrics scraper and our exporters.
   }
   ```
 - Only allow **legitimate** scrapers
-  ```caddyfile
+  ```text
   @authorized_scrapers_snippet {
     expression \
       {tls_client_subject} == "CN=vmagent.local"
   }
   ```
 - **Block** unauthorized scrapers
-  ```caddyfile
+  ```text
   handle {
    abort
   }
