@@ -47,3 +47,8 @@ Use the following commands to teardown:
 docker compose down --volumes
 rm -rf openvoxserver-ca openvoxserver-ssl
 ```
+
+## Acknowledgements
+This project is based on the excellent [OpenVox community](https://github.com/OpenVoxProject/) project and [crafty](https://github.com/voxpupuli/crafty).
+100% thanks to them and all the contributors of the [VoxPupuli](https://voxpupuli.org/) community!
+Their work has been instrumental in helping me understand the Puppet ecosystem and how to make it work for me.
