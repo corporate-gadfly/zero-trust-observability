@@ -1,5 +1,19 @@
 # Infrastructure as Code With Observability
 
+## Abstract
+
+This project demonstrates a zero-toil observability architecture for dynamic infrastructure fleets using OpenVox (Puppet), VictoriaMetrics, Vmagent, Caddy, and Grafana — all orchestrated through Docker Compose.
+
+The core idea is that every node should self-register, self-classify, and self-instrument from the moment it boots, with no manual configuration file updates required.
+
+Five implementation patterns underpin the architecture:
+
+1. **CSR Classification** — nodes embed their role (`pp_role`) as a certificate extension at provisioning time, creating a tamper-proof, agent-immutable identity that drives all downstream automation.
+2. **Pure Data Roles** — the Puppet site manifest contains zero classification logic; a single `lookup('classes', Array[String], 'unique').include` call delegates all node classification to Hiera YAML role files.
+3. **Auto-Discovery via Exported Resources** — each node publishes its own scrape target to OpenVoxDB using Puppet exported resources; the metrics scraper collects them dynamically, eliminating static target lists entirely.
+4. **Zero-Trust mTLS** — Caddy acts as a sidecar reverse proxy in front of every exporter, enforcing mutual TLS authenticated by the existing Puppet CA so only authorised scrapers can reach metrics endpoints.
+5. **Layered Observability** — a `profile::base` class applies node-exporter to every host automatically, while Hiera role data layers on workload-specific exporters (e.g. Apache, PostgreSQL) only where needed.
+
 ## Ruby install
 Use [rv](https://github.com/spinel-coop/rv) to install ruby. E.g.:
 ```shell
