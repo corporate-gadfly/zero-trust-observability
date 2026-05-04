@@ -1,9 +1,0 @@
-/.idea/
-/openvoxserver-ca/
-/openvoxserver-ssl/
-/openvox-code/.bundle
-/openvox-code/vendor
-/openvox-code/Gemfile.lock
-/openvox-code/modules/
-/tkf-2026-slides/.quarto
-/tkf-2026-slides/output_html
