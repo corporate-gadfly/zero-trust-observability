@@ -52,3 +52,13 @@ rm -rf openvoxserver-ca openvoxserver-ssl
 This project is based on the excellent [OpenVox community](https://github.com/OpenVoxProject/) project and [crafty](https://github.com/voxpupuli/crafty).
 100% thanks to them and all the contributors of the [VoxPupuli](https://voxpupuli.org/) community!
 Their work has been instrumental in helping me understand the Puppet ecosystem and how to make it work for me.
+
+## Further Reading
+- [Roles and Profiles pattern](https://docs.openvoxproject.org/openvox/8.x/the_roles_and_profiles_method.html)
+- [Exported Resources](https://docs.openvoxproject.org/openvox/8.x/lang_exported.html)
+- [Certificate Extensions](https://docs.openvoxproject.org/openvox/8.x/ssl_attributes_extensions.html)
+- [Hiera](https://docs.openvoxproject.org/openvox/8.x/hiera_intro.html)
+- [Caddy](https://caddyserver.com/docs/)
+- [VictoriaMetrics](https://docs.victoriametrics.com/)
+- [Vmagent](https://docs.victoriametrics.com/victoriametrics/vmagent/)
+- [Grafana](https://grafana.com/docs/)
