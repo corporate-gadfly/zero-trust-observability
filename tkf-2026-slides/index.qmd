@@ -58,12 +58,15 @@ To fix it, we have to recognize where we are getting stuck.
 :::
 
 ::: notes
+::: {style="font-size: 0.8em;"}
 Anchor on shared pain: most teams still run observability as a manual process.
-New servers require manual monitoring target updates.
+New servers require manual monitoring target updates. You think the service
+is running on port 8080, but the reality on the ground has changed.
 Certification management is a pain point.
 Configuration is scattered across scripts, manifests, and YAML files, making
 it hard to maintain and audit.
 This is the bottleneck we want to remove.
+:::
 :::
 
 ## Zero-Toil Architecture
@@ -76,25 +79,29 @@ This is the bottleneck we want to remove.
 :::
 
 ::: notes
+::: {style="font-size: 0.7em;"}
 To escape the toil trap, we must make observability and security native
 properties of the system. And in this case self-registration and automated
-discovery go hand in hand.
+discovery go hand in hand. When we say identity-driven, we mean that the node's
+identity and intent are inseparable from the moment it is provisioned.
+This allows us to build a zero-trust architecture where every component can
+verify the authenticity and authorization of every other component without
+relying on implicit trust or manual configuration.
 Let's look at the five patterns that make this target state possible.
+:::
 :::
 
 ## Implementation Blueprint
 
-::: {.incremental .highlight-last}
 - Classify nodes automatically during CSR signing
 - Separate logic from data using Hiera roles
 - Automate service discovery with exported resources
 - Secure metrics scraping with Caddy and mTLS
 - Standardize monitoring with layered exporter profiles
-:::
 
 ::: notes
 This slide serves as our roadmap and contract for the rest of the presentation.
-Every implementation pattern we cover next maps directly back to these five
+Every implementation pattern we cover next will map directly back to these five
 foundational pillars
 :::
 
@@ -113,7 +120,7 @@ foundational pillars
 
 ::: {.column width="38%"}
 ::: {.fragment .fade-in-then-semi-out style="text-align: left;"}
-What is `pp_role` and what goes into it?
+`pp_role` and what goes into it?
 
 - roles
   - monitoring_scraper
@@ -130,28 +137,22 @@ roles
 :::
 
 ::: notes
-Roles and profiles is not a feature provided by Puppet itself.
-It is a best-practice design pattern for Puppet that provides an interface between
-your business logic and reusable Puppet modules. At the moment of provisioning,
-the node requests its specific role via the pp_role certificate extension.
+::: {style="font-size: 0.7em;"}
+At the moment of provisioning,
+the node requests its specific role via a certificate extension.
 This embeds its identity at birth and creates a tamper-proof source of truth that
 agents cannot override. By keeping node intent attached directly to node identity,
 we eliminate central merge conflicts in static files and build a pipeline
 perfectly suited for dynamic, ephemeral fleets.
+Roles and profiles is not a feature provided by Puppet itself.
+It is a best-practice design pattern for Puppet that provides an interface between
+your business logic and reusable Puppet modules.
+:::
 :::
 
 ## Pattern 2: Pure Data Roles
 
 ::: {.incremental .highlight-last}
-- **Zero logic** inside site manifests or node definitions
-  ```{.ruby filename="manifests/site.pp"}
-  node default {
-    # Lookup classes from Hiera based on pp_role
-    # The pp_role comes from csr_attributes.yaml on the agent
-    lookup('classes', Array[String], 'unique').include
-  }
-  ```
-
 - CSR Extension attributes
   ```{.yaml filename="/etc/puppetlabs/puppet/csr_attributes.yaml"}
   ---
@@ -159,10 +160,19 @@ perfectly suited for dynamic, ephemeral fleets.
     pp_role: webserver
   ```
 
+- **Zero logic** inside site manifests or node definitions
+  ```{.ruby filename="manifests/site.pp"}
+  node default {
+    # Lookup classes from Hiera
+    lookup('classes', Array[String], 'unique').include
+  }
+  ```
+
 :::
 
 ::: notes
 The node's role is purely data-driven and attached to the certificate.
+
 The site manifest is just a thin layer that looks up classes based on the role.
 :::
 
@@ -187,6 +197,14 @@ The site manifest is just a thin layer that looks up classes based on the role.
   ```
 :::
 
+::: notes
+Hiera is a powerful tool for managing configuration data. It allows us to separate
+data from logic and to create a flexible configuration hierarchy based on the node's role.
+
+The config for hiera is stored in a single YAML file, and is locked down to the node's role.
+Mention excerpt.
+:::
+
 ## Pattern 3: Auto-Discovery
 ::: {.incremental .highlight-last}
 - **Exported resources** publish state to OpenVoxDB
@@ -208,11 +226,13 @@ The site manifest is just a thin layer that looks up classes based on the role.
 :::
 
 ::: notes
+::: {style="font-size: 0.9em;"}
 **This is the key automation mechanism of the entire talk. If you remember only
 one thing from today, make it this pattern.**
 
 Instead of manually updating static files, nodes now declare their own state at birth.
 When a node compiles its catalog, it exports its scrape target and stores it into OpenVoxDB.
+:::
 :::
 
 ##
@@ -251,6 +271,8 @@ when scaling up new infrastructure.
 To achieve zero-trust security by default, we cannot have metrics exposed over
 plaintext HTTP. We use the existing Puppet CA to establish mutual TLS between
 metrics scraper and our exporters.
+
+We ask Caddy to import all exporter config files from `conf.d`.
 :::
 
 ##
@@ -279,8 +301,11 @@ metrics scraper and our exporters.
 
 ::: notes
 By placing Caddy as a lightweight sidecar, we secure the metrics path with zero
-changes to the exporter code itself, ensuring only authenticated scrapers can
-access the data.
+changes to the exporter code itself.
+
+And we ensure that only authenticated scrapers can access the data.
+
+Good luck to anyone else who tries to scrape.
 :::
 
 ## Pattern 5: Layered Observability
@@ -304,9 +329,10 @@ access the data.
   ```
 :::
 ::: notes
+::: {style="font-size: 0.65em;"}
 To ensure comprehensive monitoring without creating alert fatigue, we take a
-layered approach to our exporters. Every single node in the fleet automatically
-receives a baseline OS-level node exporter via our base profile. Then, we use
+layered approach to our exporters. A base profile applies to every node. 
+Every single node automatically receives an OS-level node exporter via that base profile. Then, we use
 our Hiera roles to dynamically layer on specialized exporters—like
 PostgreSQL or NGINX—only on the nodes that are actually running those specific
 workloads.
@@ -316,6 +342,7 @@ we enforce strict, predictable naming conventions and labels across the entire f
 This is what finally allows us to use a single, unified query and dashboard model
 across all of our environments, drastically reducing clutter in the visualization
 layer.
+:::
 :::
 
 
@@ -380,11 +407,13 @@ The goal is to orient the audience before implementation deep dive.
 - **Continuous auditing** of exported resources.
 
 ::: notes
+::: {style="font-size: 0.9em;"}
 We have to be explicit: complete automation must still be strictly governed.
 Guardrails like policy-based autosigning scripts prevent rogue agents from
 spoofing a privileged role or overexposing sensitive metric endpoints.
 You can have absolute speed and zero-touch workflows without leaving your
 infrastructure wide open.
+:::
 :::
 
 ## Does It Work?
@@ -399,6 +428,7 @@ infrastructure wide open.
 
 ::: notes
 To prove this isn't just theoretical vaporware, we are going to do a live run.
+
 We will spin up a fresh node from scratch and watch it self-register, classify,
 and populate directly into Grafana without us touching a single configuration file.
 :::
@@ -417,11 +447,13 @@ Demo
 - **Maintains effort** keeping operational overhead flat as nodes scale.
 
 ::: notes
+::: {style="font-size: 0.8em;"}
 To tie this back to the operational economics: this architecture completely breaks
 the linear relationship between the size of your fleet and the size of your
 monitoring workload. By removing manual interventions, we ensure that adding
 1,000 new nodes requires the exact same operator effort as adding a single host,
 while actively lowering the rate of outages caused by human configuration drift.
+:::
 :::
 
 ## Engineering Anti-Patterns
