@@ -473,8 +473,8 @@ security blind spots or fragile dependencies.
 
 ## Key Takeaways
 
-- **Automate observability** from the exact second a node boot
-- **Eliminate bottlenecks** by moving classification to CSRs.
+- **Automate observability** from the exact second a node boots
+- **Eliminate bottlenecks** by moving classification to CSRs
 - **Drop manual** updates using native exported resources
 - **Recycle existing security** to achieve zero-trust mTLS
 - **Scale your infrastructure** without increasing team toil
