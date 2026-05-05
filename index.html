@@ -643,7 +643,7 @@ Student Information Systems, ITS</p>
 <li class="fragment"><span class="rn-fragment fragment" data-rn-type="circle" data-rn-color="yellow" data-rn-strokewidth="3" data-rn-padding="30">OpenVox/OpenVox Server</span> for policy and certificates</li>
 <li class="fragment"><span class="rn-fragment fragment" data-rn-type="box" data-rn-color="yellow" data-rn-strokewidth="3">OpenVoxDB</span> for exported resource inventory</li>
 <li class="fragment"><span class="rn-fragment fragment" data-rn-type="highlight" data-rn-color="purple">VictoriaMetrics</span> for metrics storage</li>
-<li class="fragment"><span class="rn-fragment fragment" data-rn-type="underline" data-rn-color="red">Vmagent</span> for metrics scraping</li>
+<li class="fragment"><span class="rn-fragment fragment" data-rn-type="underline" data-rn-color="red" data-rn-strokewidth="3">Vmagent</span> for metrics scraping</li>
 <li class="fragment"><span class="rn-fragment fragment" data-rn-type="highlight" data-rn-color="tomato">Grafana</span> for visualization</li>
 </ul>
 </div>
@@ -668,44 +668,44 @@ Student Information Systems, ITS</p>
 <h3 class="fragment" data-fragment-index="1" id="host-lifecycle">Host Lifecycle</h3>
 <div class="fragment" data-fragment-index="1">
 <ul>
-<li><strong>Host boots</strong> and starts the OpenVox agent.</li>
+<li><strong>Host boots</strong> and starts OpenVox agent</li>
 </ul>
 </div>
 <div class="fragment" data-fragment-index="3">
 <ul>
-<li><strong>Agent submits</strong> CSR with role intent.</li>
+<li><strong>Agent submits</strong> CSR with role intent</li>
 </ul>
 </div>
 <div class="fragment" data-fragment-index="5">
 <ul>
-<li><strong>Host applies</strong> role-specific profiles.</li>
+<li><strong>Host applies</strong> role-specific profiles</li>
 </ul>
 </div>
 <div class="fragment" data-fragment-index="7">
 <ul>
-<li><strong>Exporters publish</strong> scrape endpoints.</li>
+<li><strong>Exporters publish</strong> scrape endpoints</li>
 </ul>
 </div>
 </div><div class="column" style="width:50%;">
 <h3 class="fragment" data-fragment-index="2" id="system-response">System Response</h3>
 <div class="fragment" data-fragment-index="2">
 <ul>
-<li><strong>CA auto-signs</strong> based on secure policy.</li>
+<li><strong>CA auto-signs</strong> based on secure policy</li>
 </ul>
 </div>
 <div class="fragment" data-fragment-index="4">
 <ul>
-<li><strong>Hiera maps</strong> data classes to the host.</li>
+<li><strong>Hiera maps</strong> data classes to the host</li>
 </ul>
 </div>
 <div class="fragment" data-fragment-index="6">
 <ul>
-<li><strong>OpenVoxDB stores</strong> the exported assets.</li>
+<li><strong>OpenVoxDB stores</strong> the exported assets</li>
 </ul>
 </div>
 <div class="fragment" data-fragment-index="8">
 <ul>
-<li><strong>Vmagent polls</strong> the target automatically.</li>
+<li><strong>Vmagent polls</strong> the target automatically</li>
 </ul>
 </div>
 </div></div>
