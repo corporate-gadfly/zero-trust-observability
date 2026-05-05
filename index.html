@@ -262,7 +262,9 @@ Student Information Systems, ITS</p>
 </ul>
 </div>
 <aside class="notes">
-<p>Anchor on shared pain: most teams still run observability as a manual process. New servers require manual monitoring target updates. Certification management is a pain point. Configuration is scattered across scripts, manifests, and YAML files, making it hard to maintain and audit. This is the bottleneck we want to remove.</p>
+<div style="font-size: 0.8em;">
+<p>Anchor on shared pain: most teams still run observability as a manual process. New servers require manual monitoring target updates. You think the service is running on port 8080, but the reality on the ground has changed. Certification management is a pain point. Configuration is scattered across scripts, manifests, and YAML files, making it hard to maintain and audit. This is the bottleneck we want to remove.</p>
+</div>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -286,7 +288,9 @@ Student Information Systems, ITS</p>
 </ul>
 </div>
 <aside class="notes">
-<p>To escape the toil trap, we must make observability and security native properties of the system. And in this case self-registration and automated discovery go hand in hand. Let’s look at the five patterns that make this target state possible.</p>
+<div style="font-size: 0.7em;">
+<p>To escape the toil trap, we must make observability and security native properties of the system. And in this case self-registration and automated discovery go hand in hand. When we say identity-driven, we mean that the node’s identity and intent are inseparable from the moment it is provisioned. This allows us to build a zero-trust architecture where every component can verify the authenticity and authorization of every other component without relying on implicit trust or manual configuration. Let’s look at the five patterns that make this target state possible.</p>
+</div>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -301,17 +305,15 @@ Student Information Systems, ITS</p>
 </section>
 <section id="implementation-blueprint" class="slide level2 center">
 <h2>Implementation Blueprint</h2>
-<div class="highlight-last">
 <ul>
-<li class="fragment">Classify nodes automatically during CSR signing</li>
-<li class="fragment">Separate logic from data using Hiera roles</li>
-<li class="fragment">Automate service discovery with exported resources</li>
-<li class="fragment">Secure metrics scraping with Caddy and mTLS</li>
-<li class="fragment">Standardize monitoring with layered exporter profiles</li>
+<li>Classify nodes automatically during CSR signing</li>
+<li>Separate logic from data using Hiera roles</li>
+<li>Automate service discovery with exported resources</li>
+<li>Secure metrics scraping with Caddy and mTLS</li>
+<li>Standardize monitoring with layered exporter profiles</li>
 </ul>
-</div>
 <aside class="notes">
-<p>This slide serves as our roadmap and contract for the rest of the presentation. Every implementation pattern we cover next maps directly back to these five foundational pillars</p>
+<p>This slide serves as our roadmap and contract for the rest of the presentation. Every implementation pattern we cover next will map directly back to these five foundational pillars</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -338,7 +340,7 @@ Student Information Systems, ITS</p>
 </div>
 </div><div class="column" style="width:38%;">
 <div class="fragment fade-in-then-semi-out" style="text-align: left;">
-<p>What is <code>pp_role</code> and what goes into it?</p>
+<p><code>pp_role</code> and what goes into it?</p>
 <ul>
 <li>roles
 <ul>
@@ -353,7 +355,9 @@ Student Information Systems, ITS</p>
 </div>
 </div></div>
 <aside class="notes">
-<p>Roles and profiles is not a feature provided by Puppet itself. It is a best-practice design pattern for Puppet that provides an interface between your business logic and reusable Puppet modules. At the moment of provisioning, the node requests its specific role via the pp_role certificate extension. This embeds its identity at birth and creates a tamper-proof source of truth that agents cannot override. By keeping node intent attached directly to node identity, we eliminate central merge conflicts in static files and build a pipeline perfectly suited for dynamic, ephemeral fleets.</p>
+<div style="font-size: 0.7em;">
+<p>At the moment of provisioning, the node requests its specific role via a certificate extension. This embeds its identity at birth and creates a tamper-proof source of truth that agents cannot override. By keeping node intent attached directly to node identity, we eliminate central merge conflicts in static files and build a pipeline perfectly suited for dynamic, ephemeral fleets. Roles and profiles is not a feature provided by Puppet itself. It is a best-practice design pattern for Puppet that provides an interface between your business logic and reusable Puppet modules.</p>
+</div>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -370,30 +374,30 @@ Student Information Systems, ITS</p>
 <h2>Pattern 2: Pure Data Roles</h2>
 <div class="highlight-last">
 <ul>
-<li class="fragment"><p><strong>Zero logic</strong> inside site manifests or node definitions</p>
-<div class="code-with-filename">
-<div class="code-with-filename-file">
-<pre><strong>manifests/site.pp</strong></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" data-filename="manifests/site.pp"><pre class="sourceCode numberSource ruby number-lines code-with-copy"><code class="sourceCode ruby"><span id="cb2-1"><a href=""></a>node default <span class="op">{</span></span>
-<span id="cb2-2"><a href=""></a>  <span class="co"># Lookup classes from Hiera based on pp_role</span></span>
-<span id="cb2-3"><a href=""></a>  <span class="co"># The pp_role comes from csr_attributes.yaml on the agent</span></span>
-<span id="cb2-4"><a href=""></a>  lookup(<span class="vs">'classes'</span>, <span class="dt">Array</span><span class="kw">[</span><span class="dt">String</span><span class="kw">]</span>, <span class="vs">'unique'</span>)<span class="at">.include</span></span>
-<span id="cb2-5"><a href=""></a><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</div></li>
 <li class="fragment"><p>CSR Extension attributes</p>
 <div class="code-with-filename">
 <div class="code-with-filename-file">
 <pre><strong>/etc/puppetlabs/puppet/csr_attributes.yaml</strong></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" data-filename="/etc/puppetlabs/puppet/csr_attributes.yaml"><pre class="sourceCode numberSource yaml number-lines code-with-copy"><code class="sourceCode yaml"><span id="cb3-1"><a href=""></a><span class="pp">---</span></span>
-<span id="cb3-2"><a href=""></a><span class="fu">extension_requests</span><span class="kw">:</span></span>
-<span id="cb3-3"><a href=""></a><span class="at">  </span><span class="fu">pp_role</span><span class="kw">:</span><span class="at"> webserver</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" data-filename="/etc/puppetlabs/puppet/csr_attributes.yaml"><pre class="sourceCode numberSource yaml number-lines code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><a href=""></a><span class="pp">---</span></span>
+<span id="cb2-2"><a href=""></a><span class="fu">extension_requests</span><span class="kw">:</span></span>
+<span id="cb2-3"><a href=""></a><span class="at">  </span><span class="fu">pp_role</span><span class="kw">:</span><span class="at"> webserver</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div></li>
+<li class="fragment"><p><strong>Zero logic</strong> inside site manifests or node definitions</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>manifests/site.pp</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" data-filename="manifests/site.pp"><pre class="sourceCode numberSource ruby number-lines code-with-copy"><code class="sourceCode ruby"><span id="cb3-1"><a href=""></a>node default <span class="op">{</span></span>
+<span id="cb3-2"><a href=""></a>  <span class="co"># Lookup classes from Hiera</span></span>
+<span id="cb3-3"><a href=""></a>  lookup(<span class="vs">'classes'</span>, <span class="dt">Array</span><span class="kw">[</span><span class="dt">String</span><span class="kw">]</span>, <span class="vs">'unique'</span>)<span class="at">.include</span></span>
+<span id="cb3-4"><a href=""></a><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div></li>
 </ul>
 </div>
 <aside class="notes">
-<p>The node’s role is purely data-driven and attached to the certificate. The site manifest is just a thin layer that looks up classes based on the role.</p>
+<p>The node’s role is purely data-driven and attached to the certificate.</p>
+<p>The site manifest is just a thin layer that looks up classes based on the role.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -433,6 +437,20 @@ Student Information Systems, ITS</p>
 </div></li>
 </ul>
 </div>
+<aside class="notes">
+<p>Hiera is a powerful tool for managing configuration data. It allows us to separate data from logic and to create a flexible configuration hierarchy based on the node’s role.</p>
+<p>The config for hiera is stored in a single YAML file, and is locked down to the node’s role. Mention excerpt.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
 <section id="pattern-3-auto-discovery" class="slide level2 center">
 <h2>Pattern 3: Auto-Discovery</h2>
@@ -455,8 +473,10 @@ Student Information Systems, ITS</p>
 </ul>
 </div>
 <aside class="notes">
+<div style="font-size: 0.9em;">
 <p><strong>This is the key automation mechanism of the entire talk. If you remember only one thing from today, make it this pattern.</strong></p>
 <p>Instead of manually updating static files, nodes now declare their own state at birth. When a node compiles its catalog, it exports its scrape target and stores it into OpenVoxDB.</p>
+</div>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -515,6 +535,7 @@ Student Information Systems, ITS</p>
 </div>
 <aside class="notes">
 <p>To achieve zero-trust security by default, we cannot have metrics exposed over plaintext HTTP. We use the existing Puppet CA to establish mutual TLS between metrics scraper and our exporters.</p>
+<p>We ask Caddy to import all exporter config files from <code>conf.d</code>.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -552,7 +573,9 @@ Student Information Systems, ITS</p>
 </ul>
 </div>
 <aside class="notes">
-<p>By placing Caddy as a lightweight sidecar, we secure the metrics path with zero changes to the exporter code itself, ensuring only authenticated scrapers can access the data.</p>
+<p>By placing Caddy as a lightweight sidecar, we secure the metrics path with zero changes to the exporter code itself.</p>
+<p>And we ensure that only authenticated scrapers can access the data.</p>
+<p>Good luck to anyone else who tries to scrape.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -598,7 +621,9 @@ Student Information Systems, ITS</p>
 </ul>
 </div>
 <aside class="notes">
-<p>To ensure comprehensive monitoring without creating alert fatigue, we take a layered approach to our exporters. Every single node in the fleet automatically receives a baseline OS-level node exporter via our base profile. Then, we use our Hiera roles to dynamically layer on specialized exporters—like PostgreSQL or NGINX—only on the nodes that are actually running those specific workloads. By keeping our baseline and role profiles perfectly aligned with our Hiera roles, we enforce strict, predictable naming conventions and labels across the entire fleet. we enforce strict, predictable naming conventions and labels across the entire fleet. This is what finally allows us to use a single, unified query and dashboard model across all of our environments, drastically reducing clutter in the visualization layer.</p>
+<div style="font-size: 0.65em;">
+<p>To ensure comprehensive monitoring without creating alert fatigue, we take a layered approach to our exporters. A base profile applies to every node. Every single node automatically receives an OS-level node exporter via that base profile. Then, we use our Hiera roles to dynamically layer on specialized exporters—like PostgreSQL or NGINX—only on the nodes that are actually running those specific workloads. By keeping our baseline and role profiles perfectly aligned with our Hiera roles, we enforce strict, predictable naming conventions and labels across the entire fleet. we enforce strict, predictable naming conventions and labels across the entire fleet. This is what finally allows us to use a single, unified query and dashboard model across all of our environments, drastically reducing clutter in the visualization layer.</p>
+</div>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -694,7 +719,9 @@ Student Information Systems, ITS</p>
 <li><strong>Continuous auditing</strong> of exported resources.</li>
 </ul>
 <aside class="notes">
+<div style="font-size: 0.9em;">
 <p>We have to be explicit: complete automation must still be strictly governed. Guardrails like policy-based autosigning scripts prevent rogue agents from spoofing a privileged role or overexposing sensitive metric endpoints. You can have absolute speed and zero-touch workflows without leaving your infrastructure wide open.</p>
+</div>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -719,7 +746,8 @@ Student Information Systems, ITS</p>
 </ul>
 </div>
 <aside class="notes">
-<p>To prove this isn’t just theoretical vaporware, we are going to do a live run. We will spin up a fresh node from scratch and watch it self-register, classify, and populate directly into Grafana without us touching a single configuration file.</p>
+<p>To prove this isn’t just theoretical vaporware, we are going to do a live run.</p>
+<p>We will spin up a fresh node from scratch and watch it self-register, classify, and populate directly into Grafana without us touching a single configuration file.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -747,7 +775,9 @@ Student Information Systems, ITS</p>
 <li><strong>Maintains effort</strong> keeping operational overhead flat as nodes scale.</li>
 </ul>
 <aside class="notes">
+<div style="font-size: 0.8em;">
 <p>To tie this back to the operational economics: this architecture completely breaks the linear relationship between the size of your fleet and the size of your monitoring workload. By removing manual interventions, we ensure that adding 1,000 new nodes requires the exact same operator effort as adding a single host, while actively lowering the rate of outages caused by human configuration drift.</p>
+</div>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
