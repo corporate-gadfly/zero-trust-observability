@@ -3,7 +3,6 @@
 ## Perform following steps to clean up the environment.
 
 ```shell
-docker compose --profile openvox down --volumes
-
+docker compose down --volumes
 rm -rf openvoxserver-ca openvoxserver-ssl
 ```
