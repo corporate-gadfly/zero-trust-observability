@@ -3,7 +3,6 @@
 # Roles are defined in Hiera YAML files, not Puppet manifests
 
 node default {
-  # Lookup classes from Hiera based on pp_role
-  # The pp_role comes from csr_attributes.yaml on the agent
+  # Lookup classes from Hiera
   lookup('classes', Array[String], 'unique').include
 }
