@@ -352,7 +352,7 @@ layer.
 - [OpenVox/OpenVox Server]{.rn-fragment rn-type=circle rn-color=yellow rn-strokeWidth=3 rn-padding=30} for policy and certificates
 - [OpenVoxDB]{.rn-fragment rn-type=box rn-color=yellow rn-strokeWidth=3} for exported resource inventory
 - [VictoriaMetrics]{.rn-fragment rn-type=highlight rn-color=purple} for metrics storage
-- [Vmagent]{.rn-fragment rn-type=underline rn-color=red} for metrics scraping
+- [Vmagent]{.rn-fragment rn-type=underline rn-color=red rn-strokeWidth=3} for metrics scraping
 - [Grafana]{.rn-fragment rn-type=highlight rn-color=tomato} for visualization
 :::
 
@@ -368,16 +368,16 @@ The goal is to orient the audience before implementation deep dive.
 ### Host Lifecycle {.fragment fragment-index=1}
 
 ::: {.fragment fragment-index=1}
-- **Host boots** and starts the OpenVox agent.
+- **Host boots** and starts OpenVox agent
 :::
 ::: {.fragment fragment-index=3}
-- **Agent submits** CSR with role intent.
+- **Agent submits** CSR with role intent
 :::
 ::: {.fragment fragment-index=5}
-- **Host applies** role-specific profiles.
+- **Host applies** role-specific profiles
 :::
 ::: {.fragment fragment-index=7}
-- **Exporters publish** scrape endpoints.
+- **Exporters publish** scrape endpoints
 :::
 :::
 
@@ -385,16 +385,16 @@ The goal is to orient the audience before implementation deep dive.
 ### System Response {.fragment fragment-index=2}
 
 ::: {.fragment fragment-index=2}
-- **CA auto-signs** based on secure policy.
+- **CA auto-signs** based on secure policy
 :::
 ::: {.fragment fragment-index=4}
-- **Hiera maps** data classes to the host.
+- **Hiera maps** data classes to the host
 :::
 ::: {.fragment fragment-index=6}
-- **OpenVoxDB stores** the exported assets.
+- **OpenVoxDB stores** the exported assets
 :::
 ::: {.fragment fragment-index=8}
-- **Vmagent polls** the target automatically.
+- **Vmagent polls** the target automatically
 :::
 :::
 :::
