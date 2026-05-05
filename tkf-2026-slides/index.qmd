@@ -160,7 +160,7 @@ your business logic and reusable Puppet modules.
     pp_role: webserver
   ```
 
-- **Zero logic** inside site manifests or node definitions
+- **Zero logic** inside site manifest or node definitions
   ```{.ruby filename="manifests/site.pp"}
   node default {
     # Lookup classes from Hiera
