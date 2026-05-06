@@ -105,6 +105,27 @@ Every implementation pattern we cover next will map directly back to these five
 foundational pillars
 :::
 
+## Components in This Reference Stack
+
+::: {.incremental .highlight-last}
+- [OpenVox/OpenVox Server]{.rn-fragment rn-type=circle rn-color=yellow rn-strokeWidth=3 rn-padding=30} for policy and certificates
+- [OpenVoxDB]{.rn-fragment rn-type=box rn-color=yellow rn-strokeWidth=3} for exported resource inventory
+- [VictoriaMetrics]{.rn-fragment rn-type=highlight rn-color=purple} for metrics storage
+- [Vmagent]{.rn-fragment rn-type=underline rn-color=red rn-strokeWidth=3} for metrics scraping
+- [Grafana]{.rn-fragment rn-type=highlight rn-color=tomato} for visualization
+:::
+
+::: notes
+OpenVox/OpenVox Server is for configuration management. If you use anything else
+for config. mgmt., like Ansible or Chef, please have a conversation with me afterwards.
+
+OpenVoxDB is for storing the inventory of exported resources.
+
+VictoriaMetrics is a time series database. I chose this over Prometheus because
+it is much more performant and it very easy to scale (even with the
+single-node version).
+:::
+
 ## Pattern 1: CSR Classification
 
 ::: columns
@@ -343,22 +364,6 @@ This is what finally allows us to use a single, unified query and dashboard mode
 across all of our environments, drastically reducing clutter in the visualization
 layer.
 :::
-:::
-
-
-## Components in This Reference Stack
-
-::: {.incremental .highlight-last}
-- [OpenVox/OpenVox Server]{.rn-fragment rn-type=circle rn-color=yellow rn-strokeWidth=3 rn-padding=30} for policy and certificates
-- [OpenVoxDB]{.rn-fragment rn-type=box rn-color=yellow rn-strokeWidth=3} for exported resource inventory
-- [VictoriaMetrics]{.rn-fragment rn-type=highlight rn-color=purple} for metrics storage
-- [Vmagent]{.rn-fragment rn-type=underline rn-color=red rn-strokeWidth=3} for metrics scraping
-- [Grafana]{.rn-fragment rn-type=highlight rn-color=tomato} for visualization
-:::
-
-::: notes
-Keep this slide fast; details come later.
-The goal is to orient the audience before implementation deep dive.
 :::
 
 ## The Automated Pipeline
