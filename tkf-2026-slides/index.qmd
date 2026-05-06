@@ -486,6 +486,10 @@ repository, review the Caddy and Puppet configurations, and discuss how to
 apply these execution patterns to your own environments.
 :::
 
+## Bonus Slide: System Architecture
+
+![](images/TKF%202026.svg)
+
 ## {.center}
 
 ::: {.r-fit-text}
@@ -495,4 +499,3 @@ Questions?
 ## Git Repo
 
 ![](images/zero-trust-observability.svg){width="30%"}
-
