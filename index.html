@@ -431,7 +431,7 @@ Student Information Systems, ITS</p>
 <div class="code-with-filename-file">
 <pre><strong>/etc/puppetlabs/puppet/csr_attributes.yaml</strong></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" data-filename="/etc/puppetlabs/puppet/csr_attributes.yaml"><pre class="sourceCode numberSource yaml number-lines code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><a href=""></a><span class="pp">---</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" data-filename="/etc/puppetlabs/puppet/csr_attributes.yaml" data-code-line-numbers="|3"><pre class="sourceCode numberSource yaml number-lines code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><a href=""></a><span class="pp">---</span></span>
 <span id="cb2-2"><a href=""></a><span class="fu">extension_requests</span><span class="kw">:</span></span>
 <span id="cb2-3"><a href=""></a><span class="at">  </span><span class="fu">pp_role</span><span class="kw">:</span><span class="at"> webserver</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div></li>
@@ -440,7 +440,7 @@ Student Information Systems, ITS</p>
 <div class="code-with-filename-file">
 <pre><strong>manifests/site.pp</strong></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" data-filename="manifests/site.pp"><pre class="sourceCode numberSource ruby number-lines code-with-copy"><code class="sourceCode ruby"><span id="cb3-1"><a href=""></a>node default <span class="op">{</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" data-filename="manifests/site.pp" data-code-line-numbers="|3"><pre class="sourceCode numberSource ruby number-lines code-with-copy"><code class="sourceCode ruby"><span id="cb3-1"><a href=""></a>node default <span class="op">{</span></span>
 <span id="cb3-2"><a href=""></a>  <span class="co"># Lookup classes from Hiera</span></span>
 <span id="cb3-3"><a href=""></a>  lookup(<span class="vs">'classes'</span>, <span class="dt">Array</span><span class="kw">[</span><span class="dt">String</span><span class="kw">]</span>, <span class="vs">'unique'</span>)<span class="at">.include</span></span>
 <span id="cb3-4"><a href=""></a><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -473,7 +473,7 @@ Student Information Systems, ITS</p>
 <div class="code-with-filename-file">
 <pre><strong>data/roles/webserver.yaml</strong></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" data-filename="data/roles/webserver.yaml"><pre class="sourceCode numberSource yaml number-lines code-with-copy"><code class="sourceCode yaml"><span id="cb4-1"><a href=""></a><span class="pp">---</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4" data-filename="data/roles/webserver.yaml" data-code-line-numbers="|4-6"><pre class="sourceCode numberSource yaml number-lines code-with-copy"><code class="sourceCode yaml"><span id="cb4-1"><a href=""></a><span class="pp">---</span></span>
 <span id="cb4-2"><a href=""></a><span class="co"># Webserver role - Apache with monitoring</span></span>
 <span id="cb4-3"><a href=""></a><span class="co"># Applied to nodes with pp_role=webserver in csr_attributes.yaml</span></span>
 <span id="cb4-4"><a href=""></a><span class="fu">classes</span><span class="kw">:</span></span>
@@ -485,7 +485,7 @@ Student Information Systems, ITS</p>
 <div class="code-with-filename-file">
 <pre><strong>excerpt from hiera.yaml</strong></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" data-filename="excerpt from hiera.yaml"><pre class="sourceCode numberSource yaml number-lines code-with-copy"><code class="sourceCode yaml"><span id="cb5-1"><a href=""></a><span class="fu">hierarchy</span><span class="kw">:</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" data-filename="excerpt from hiera.yaml" data-code-line-numbers="|3"><pre class="sourceCode numberSource yaml number-lines code-with-copy"><code class="sourceCode yaml"><span id="cb5-1"><a href=""></a><span class="fu">hierarchy</span><span class="kw">:</span></span>
 <span id="cb5-2"><a href=""></a><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> </span><span class="st">"Per-role data (from CSR attributes)"</span></span>
 <span id="cb5-3"><a href=""></a><span class="at">  </span><span class="fu">path</span><span class="kw">:</span><span class="at"> </span><span class="st">"roles/%{trusted.extensions.pp_role}.yaml"</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div></li>
@@ -513,7 +513,7 @@ Student Information Systems, ITS</p>
 <div class="highlight-last">
 <ul>
 <li class="fragment"><p><strong>Exported resources</strong> publish state to OpenVoxDB</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode numberSource ruby number-lines code-with-copy"><code class="sourceCode ruby"><span id="cb6-1"><a href=""></a><span class="ot">@@file</span> <span class="op">{</span> <span class="st">"/etc/vmagent/targets.d/${facts['networking']['fqdn']}_${name}.yaml"</span><span class="wa">:</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6" data-code-line-numbers="|1,12"><pre class="sourceCode numberSource ruby number-lines code-with-copy"><code class="sourceCode ruby"><span id="cb6-1"><a href=""></a><span class="ot">@@file</span> <span class="op">{</span> <span class="st">"/etc/vmagent/targets.d/${facts['networking']['fqdn']}_${name}.yaml"</span><span class="wa">:</span></span>
 <span id="cb6-2"><a href=""></a>  <span class="cf">ensure</span>  <span class="op">=&gt;</span> file,</span>
 <span id="cb6-3"><a href=""></a>  content <span class="op">=&gt;</span> <span class="er">@</span>(<span class="st">"EOT"</span>),</span>
 <span id="cb6-4"><a href=""></a>    <span class="co"># Managed by Puppet</span></span>
@@ -551,7 +551,7 @@ Student Information Systems, ITS</p>
 <div class="highlight-last">
 <ul>
 <li class="fragment"><p><strong>Dynamic collection</strong> gathers all active targets</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode numberSource ruby number-lines code-with-copy"><code class="sourceCode ruby"><span id="cb7-1"><a href=""></a><span class="co"># Collect all exported vmagent targets from other nodes</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7" data-code-line-numbers="|2"><pre class="sourceCode numberSource ruby number-lines code-with-copy"><code class="sourceCode ruby"><span id="cb7-1"><a href=""></a><span class="co"># Collect all exported vmagent targets from other nodes</span></span>
 <span id="cb7-2"><a href=""></a><span class="dt">File</span> <span class="op">&lt;&lt;|</span> tag <span class="op">==</span> <span class="vs">'vmagent_target'</span> <span class="op">|&gt;&gt;</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
 </ul>
 </div>
@@ -581,7 +581,7 @@ Student Information Systems, ITS</p>
 <div class="code-with-filename-file">
 <pre><strong>excerpt from Caddyfile</strong></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" data-filename="excerpt from Caddyfile"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb8-1"><a href=""></a># Authenticate via Puppet CA with mTLS</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8" data-filename="excerpt from Caddyfile" data-code-line-numbers="|5"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb8-1"><a href=""></a># Authenticate via Puppet CA with mTLS</span>
 <span id="cb8-2"><a href=""></a>tls /etc/caddy/node-cert.pem /etc/caddy/node-key.pem {</span>
 <span id="cb8-3"><a href=""></a>  client_auth {</span>
 <span id="cb8-4"><a href=""></a>    mode require_and_verify</span>
@@ -629,7 +629,7 @@ Student Information Systems, ITS</p>
 <span id="cb10-3"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div></li>
 <li class="fragment"><p>Only allow <strong>legitimate</strong> scrapers</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb11-1"><a href=""></a>@authorized_scrapers_snippet {</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11" data-code-line-numbers="|3"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb11-1"><a href=""></a>@authorized_scrapers_snippet {</span>
 <span id="cb11-2"><a href=""></a>  expression \</span>
 <span id="cb11-3"><a href=""></a>    {tls_client_subject} == "CN=vmagent.local"</span>
 <span id="cb11-4"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
@@ -666,7 +666,7 @@ Student Information Systems, ITS</p>
 <div class="code-with-filename-file">
 <pre><strong>data/common.yaml</strong></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13" data-filename="data/common.yaml"><pre class="sourceCode numberSource yaml number-lines code-with-copy"><code class="sourceCode yaml"><span id="cb13-1"><a href=""></a><span class="fu">classes</span><span class="kw">:</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13" data-filename="data/common.yaml" data-code-line-numbers="|2"><pre class="sourceCode numberSource yaml number-lines code-with-copy"><code class="sourceCode yaml"><span id="cb13-1"><a href=""></a><span class="fu">classes</span><span class="kw">:</span></span>
 <span id="cb13-2"><a href=""></a><span class="kw">-</span><span class="at"> profile::base</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div></li>
 <li class="fragment"><p><strong>Baseline metrics</strong> applied to every node</p>
@@ -674,16 +674,16 @@ Student Information Systems, ITS</p>
 <div class="code-with-filename-file">
 <pre><strong>site/profile/manifests/base.pp</strong></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14" data-filename="site/profile/manifests/base.pp"><pre class="sourceCode numberSource ruby number-lines code-with-copy"><code class="sourceCode ruby"><span id="cb14-1"><a href=""></a><span class="cf">class</span> profile<span class="op">::</span><span class="at">base</span> <span class="op">{</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14" data-filename="site/profile/manifests/base.pp" data-code-line-numbers="|2"><pre class="sourceCode numberSource ruby number-lines code-with-copy"><code class="sourceCode ruby"><span id="cb14-1"><a href=""></a><span class="cf">class</span> profile<span class="op">::</span><span class="at">base</span> <span class="op">{</span></span>
 <span id="cb14-2"><a href=""></a>  <span class="fu">include</span> profile<span class="op">::</span><span class="at">monitoring</span><span class="op">::</span><span class="at">node_exporter</span></span>
 <span id="cb14-3"><a href=""></a><span class="op">}</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div></li>
-<li class="fragment"><p><strong>Role-specific</strong> exporters added based on workload</p>
+<li class="fragment"><p><strong>Role-specific</strong> exporters are added based on workload</p>
 <div class="code-with-filename">
 <div class="code-with-filename-file">
 <pre><strong>roles/webserver.yaml</strong></pre>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15" data-filename="roles/webserver.yaml"><pre class="sourceCode numberSource yaml number-lines code-with-copy"><code class="sourceCode yaml"><span id="cb15-1"><a href=""></a><span class="fu">classes</span><span class="kw">:</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15" data-filename="roles/webserver.yaml" data-code-line-numbers="|2-3"><pre class="sourceCode numberSource yaml number-lines code-with-copy"><code class="sourceCode yaml"><span id="cb15-1"><a href=""></a><span class="fu">classes</span><span class="kw">:</span></span>
 <span id="cb15-2"><a href=""></a><span class="kw">-</span><span class="at"> profile::apache</span></span>
 <span id="cb15-3"><a href=""></a><span class="kw">-</span><span class="at"> profile::monitoring::apache_exporter</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div></li>
@@ -825,7 +825,7 @@ Student Information Systems, ITS</p>
 <li><strong>Scales infinitely</strong> from isolated labs to massive production fleets.</li>
 <li><strong>Adapts dynamically</strong> to volatile node churn and auto-scaling.</li>
 <li><strong>Accelerates visibility</strong> by establishing instant scrape targets.</li>
-<li><strong>Maintains effort</strong> keeping operational overhead flat as nodes scale.</li>
+<li><strong>Minimizes effort</strong> by keeping operational overhead flat as the nodes scale.</li>
 </ul>
 <aside class="notes">
 <div style="font-size: 1.5em;">
