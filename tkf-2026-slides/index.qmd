@@ -218,14 +218,14 @@ your business logic and reusable Puppet modules.
 
 ::: {.incremental .highlight-last}
 - CSR Extension attributes
-  ```{.yaml filename="/etc/puppetlabs/puppet/csr_attributes.yaml"}
+  ```{.yaml filename="/etc/puppetlabs/puppet/csr_attributes.yaml"  code-line-numbers="|3"}
   ---
   extension_requests:
     pp_role: webserver
   ```
 
 - **Zero logic** inside site manifest or node definitions
-  ```{.ruby filename="manifests/site.pp"}
+  ```{.ruby filename="manifests/site.pp" code-line-numbers="|3"}
   node default {
     # Lookup classes from Hiera
     lookup('classes', Array[String], 'unique').include
@@ -250,7 +250,7 @@ classes to this node.
 
 ::: {.incremental .highlight-last}
 - **Hiera lookup** determines config based on `pp_role`
-  ```{.yaml filename="data/roles/webserver.yaml"}
+  ```{.yaml filename="data/roles/webserver.yaml"  code-line-numbers="|4-6"}
   ---
   # Webserver role - Apache with monitoring
   # Applied to nodes with pp_role=webserver in csr_attributes.yaml
@@ -260,7 +260,7 @@ classes to this node.
   ```
 
 - Hiera configuration
-  ```{.yaml filename="excerpt from hiera.yaml"}
+  ```{.yaml filename="excerpt from hiera.yaml" code-line-numbers="|3"}
   hierarchy:
   - name: "Per-role data (from CSR attributes)"
     path: "roles/%{trusted.extensions.pp_role}.yaml"
@@ -282,7 +282,7 @@ is a single YAML file, and the path shown on line 3 is the node's trusted role.
 ## Pattern 3: Auto-Discovery
 ::: {.incremental .highlight-last}
 - **Exported resources** publish state to OpenVoxDB
-  ```ruby
+  ```{.ruby code-line-numbers="|1,12"}
   @@file { "/etc/vmagent/targets.d/${facts['networking']['fqdn']}_${name}.yaml":
     ensure  => file,
     content => @("EOT"),
@@ -315,7 +315,7 @@ Line 12 is the tag that we use to specify the exported targets.
 ##
 ::: {.incremental .highlight-last}
 - **Dynamic collection** gathers all active targets
-  ```ruby
+  ```{.ruby code-line-numbers="|2"}
   # Collect all exported vmagent targets from other nodes
   File <<| tag == 'vmagent_target' |>>
   ```
@@ -336,7 +336,7 @@ polling interval as well as on-demand. We will see that in the demo.
 ## Pattern 4: Zero-Trust mTLS
 ::: {.incremental .highlight-last}
 - **Caddy** acts as a _sidecar_ reverse proxy and mTLS server
-  ```{.text filename="excerpt from Caddyfile"}
+  ```{.text filename="excerpt from Caddyfile" code-line-numbers="|5"}
   # Authenticate via Puppet CA with mTLS
   tls /etc/caddy/node-cert.pem /etc/caddy/node-key.pem {
     client_auth {
@@ -375,7 +375,7 @@ Here we are asking Caddy to import all exporter config files from **conf.d**.
   }
   ```
 - Only allow **legitimate** scrapers
-  ```text
+  ```{.text code-line-numbers="|3"}
   @authorized_scrapers_snippet {
     expression \
       {tls_client_subject} == "CN=vmagent.local"
@@ -404,18 +404,18 @@ Good luck to anyone else who tries to scrape.
 ## Pattern 5: Layered Observability
 ::: {.incremental .highlight-last}
 - **Common** profile applies to all nodes
-  ```{.yaml filename="data/common.yaml"}
+  ```{.yaml filename="data/common.yaml" code-line-numbers="|2"}
   classes:
   - profile::base
   ```
 - **Baseline metrics** applied to every node
-  ```{.ruby filename="site/profile/manifests/base.pp"}
+  ```{.ruby filename="site/profile/manifests/base.pp" code-line-numbers="|2"}
   class profile::base {
     include profile::monitoring::node_exporter
   }
   ```
-- **Role-specific** exporters added based on workload
-  ```{.yaml filename="roles/webserver.yaml"}
+- **Role-specific** exporters are added based on workload
+  ```{.yaml filename="roles/webserver.yaml" code-line-numbers="|2-3"}
   classes:
   - profile::apache
   - profile::monitoring::apache_exporter
@@ -533,7 +533,7 @@ Demo
 - **Scales infinitely** from isolated labs to massive production fleets.
 - **Adapts dynamically** to volatile node churn and auto-scaling.
 - **Accelerates visibility** by establishing instant scrape targets.
-- **Maintains effort** keeping operational overhead flat as nodes scale.
+- **Minimizes effort** by keeping operational overhead flat as the nodes scale.
 
 ::: notes
 ::: {style="font-size: 1.5em;"}
