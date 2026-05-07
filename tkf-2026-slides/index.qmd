@@ -27,8 +27,16 @@ Student Information Systems, ITS
 :::
 
 ::: notes
-Quick introduction and context for this session.
-Set expectation: practical patterns, working code, and production-minded trade-offs.
+::: {style="font-size: 1.5em;"}
+You are here because you are interested in observability and are using Puppet already
+or thinking about it.
+
+This will be a fairly technical talk. There will be no fancy background graphics, or any
+memes on display.
+
+I will demonstrate how to build a modern observability stack with Puppet, show a
+quick demo of the resulting architecture, and then leave some time for questions at the end.
+:::
 :::
 
 ##
@@ -41,10 +49,16 @@ _"If you want everything to be familiar, you will never learn anything new, beca
 — Rich Hickey
 :::
 ::: notes
+::: {style="font-size: 1.5em;"}
+The quote is by Rich Hickey, the author of the programming language Clojure which
+is a dialect of Lips that runs on the JVM.
+
 I love this quote because it applies directly to how we build infrastructure.
+
 We keep copy-pasting the same scripts and hand-maintaining files because it is
-what we know. But that familiarity is actively holding us back from scaling.
+what we know. But that familiarity is actively holding us back from **scaling**.
 To fix it, we have to recognize where we are getting stuck.
+:::
 :::
 ---
 
@@ -58,13 +72,16 @@ To fix it, we have to recognize where we are getting stuck.
 :::
 
 ::: notes
-::: {style="font-size: 0.8em;"}
-Anchor on shared pain: most teams still run observability as a manual process.
-New servers require manual monitoring target updates. You think the service
-is running on port 8080, but the reality on the ground has changed.
+::: {style="font-size: 1.5em;"}
+Most teams still run observability as a manual process. New servers require manual
+updates of monitoring targets.
+
+You think the service is running on port 8080, but the reality on the ground has changed.
+
 Certification management is a pain point.
+
 Configuration is scattered across scripts, manifests, and YAML files, making
-it hard to maintain and audit.
+it hard to maintain and **audit**.
 This is the bottleneck we want to remove.
 :::
 :::
@@ -79,14 +96,20 @@ This is the bottleneck we want to remove.
 :::
 
 ::: notes
-::: {style="font-size: 0.7em;"}
+::: {style="font-size: 1.2em;"}
 To escape the toil trap, we must make observability and security native
-properties of the system. And in this case self-registration and automated
-discovery go hand in hand. When we say identity-driven, we mean that the node's
+properties of the system.
+
+And in this case self-registration and automated
+discovery go hand in hand.
+
+When we say identity-driven, we mean that the node's
 identity and intent are inseparable from the moment it is provisioned.
+
 This allows us to build a zero-trust architecture where every component can
-verify the authenticity and authorization of every other component without
-relying on implicit trust or manual configuration.
+verify the **authenticity** and **authorization** of every other component without
+relying on **implicit trust** or **manual configuration**.
+
 Let's look at the five patterns that make this target state possible.
 :::
 :::
@@ -100,9 +123,13 @@ Let's look at the five patterns that make this target state possible.
 - Standardize monitoring with layered exporter profiles
 
 ::: notes
+::: {style="font-size: 1.5em;"}
 This slide serves as our roadmap and contract for the rest of the presentation.
+
 Every implementation pattern we cover next will map directly back to these five
-foundational pillars
+foundational pillars. We will cover each of these patterns in detail in the
+following slides.
+:::
 :::
 
 ## Components in This Reference Stack
@@ -116,14 +143,21 @@ foundational pillars
 :::
 
 ::: notes
+::: {style="font-size: 1.2em;"}
+This slide needs 2 clicks for each bullet (for animation).
+
 OpenVox/OpenVox Server is for configuration management. If you use anything else
 for config. mgmt., like Ansible or Chef, please have a conversation with me afterwards.
+Mention Puppet vs. OpenVox.
 
 OpenVoxDB is for storing the inventory of exported resources.
 
 VictoriaMetrics is a time series database. I chose this over Prometheus because
-it is much more performant and it very easy to scale (even with the
-single-node version).
+it is much more performant, and it is straightforward to scale, even with the
+single-node version.
+
+vmagent which is part of VictoriaMetrics is for scraping metrics from the nodes.
+:::
 :::
 
 ## Pattern 1: CSR Classification
@@ -158,17 +192,26 @@ roles
 :::
 
 ::: notes
-::: {style="font-size: 0.7em;"}
+CSR stands for Certificate Signing Request.
 At the moment of provisioning,
 the node requests its specific role via a certificate extension.
-This embeds its identity at birth and creates a tamper-proof source of truth that
-agents cannot override. By keeping node intent attached directly to node identity,
+
+This embeds its identity cryptographically at birth.
+
+And it creates a tamper-proof source of truth that
+agents cannot override.
+By keeping node intent attached directly to node identity,
 we eliminate central merge conflicts in static files and build a pipeline
 perfectly suited for dynamic, ephemeral fleets.
+
+For demo purposes, I took a shortcut with autosigning, but you can also use a secure policy script
+to enforce stricter autosigning rules.
+
+`pp_role` stands for **Provisioning Profile Role**. What values go in it? Typically, the roles for the server.
+
 Roles and profiles is not a feature provided by Puppet itself.
 It is a best-practice design pattern for Puppet that provides an interface between
 your business logic and reusable Puppet modules.
-:::
 :::
 
 ## Pattern 2: Pure Data Roles
@@ -192,9 +235,15 @@ your business logic and reusable Puppet modules.
 :::
 
 ::: notes
-The node's role is purely data-driven and attached to the certificate.
+::: {style="font-size: 1.5em;"}
+The node's role is purely data-driven and attached to the certificate. In this case,
+line 3 specifies that the node's role is **webserver**.
 
 The site manifest is just a thin layer that looks up classes based on the role.
+Line 3 says Search all Hiera levels for a list called **classes**, merge them into
+a single list of strings, remove all duplicate class names, and then apply those
+classes to this node.
+:::
 :::
 
 ##
@@ -219,11 +268,15 @@ The site manifest is just a thin layer that looks up classes based on the role.
 :::
 
 ::: notes
+::: {style="font-size: 1.5em;"}
+You just heard a new term **hiera**.
 Hiera is a powerful tool for managing configuration data. It allows us to separate
 data from logic and to create a flexible configuration hierarchy based on the node's role.
+Line 4 is an array of classes that will be applied to this node.
 
-The config for hiera is stored in a single YAML file, and is locked down to the node's role.
-Mention excerpt.
+Next up is a small snippet of the hiera configuration that
+is a single YAML file, and the path shown on line 3 is the node's trusted role.
+:::
 :::
 
 ## Pattern 3: Auto-Discovery
@@ -247,12 +300,15 @@ Mention excerpt.
 :::
 
 ::: notes
-::: {style="font-size: 0.9em;"}
+::: {style="font-size: 1.5em;"}
 **This is the key automation mechanism of the entire talk. If you remember only
 one thing from today, make it this pattern.**
 
 Instead of manually updating static files, nodes now declare their own state at birth.
 When a node compiles its catalog, it exports its scrape target and stores it into OpenVoxDB.
+
+Line 1 shows the path for **targets.d** and line 4 onwards is the contents of the file.
+Line 12 is the tag that we use to specify the exported targets.
 :::
 :::
 
@@ -266,9 +322,15 @@ When a node compiles its catalog, it exports its scrape target and stores it int
 :::
 
 ::: notes
+::: {style="font-size: 1.5em;"}
 The server scraping the metrics, then queries OpenVoxDB, and dynamically pulls in
 all active targets. This eliminates the need for human intervention
 when scaling up new infrastructure.
+
+A new server comes up, it registers itself with OpenVoxDB, and the scraper
+automatically discovers it as a new target. The discovery can be done on a regular
+polling interval as well as on-demand. We will see that in the demo.
+:::
 :::
 
 ## Pattern 4: Zero-Trust mTLS
@@ -289,11 +351,18 @@ when scaling up new infrastructure.
   ```
 :::
 ::: notes
-To achieve zero-trust security by default, we cannot have metrics exposed over
-plaintext HTTP. We use the existing Puppet CA to establish mutual TLS between
-metrics scraper and our exporters.
+::: {style="font-size: 1.3em;"}
+To achieve zero-trust security by default, we must not have metrics exposed over
+HTTP in plaintext. There are two things that we can do.
 
-We ask Caddy to import all exporter config files from `conf.d`.
+1. Caddy is a lightweight, reverse proxy and TLS server. We can use Caddy as a sidecar proxy. 
+1. Luckily, we can use the existing Puppet CA to establish mutual TLS between
+metrics scraper and our nodes.
+
+In this snippet we have configured Caddy to authenticate clients with mutual TLS using the Puppet CA.
+
+Here we are asking Caddy to import all exporter config files from **conf.d**.
+:::
 :::
 
 ##
@@ -321,12 +390,15 @@ We ask Caddy to import all exporter config files from `conf.d`.
 :::
 
 ::: notes
+::: {style="font-size: 1.5em;"}
 By placing Caddy as a lightweight sidecar, we secure the metrics path with zero
-changes to the exporter code itself.
+changes to the exporter code itself. A lot of times it is quite cumbersome to
+configure the exporter to add TLS support, let alone mutual TLS.
 
-And we ensure that only authenticated scrapers can access the data.
+And then we ensure that only authenticated scrapers can access the metrics.
 
 Good luck to anyone else who tries to scrape.
+:::
 :::
 
 ## Pattern 5: Layered Observability
@@ -350,16 +422,21 @@ Good luck to anyone else who tries to scrape.
   ```
 :::
 ::: notes
-::: {style="font-size: 0.65em;"}
+::: {style="font-size: 1.1em;"}
 To ensure comprehensive monitoring without creating alert fatigue, we take a
-layered approach to our exporters. A base profile applies to every node. 
-Every single node automatically receives an OS-level node exporter via that base profile. Then, we use
+layered approach to our exporters.
+
+A base profile applies to every node. 
+
+What's contained in this base profile. Every single node automatically receives an OS-level node exporter.
+
+Then, we use
 our Hiera roles to dynamically layer on specialized exporters—like
 PostgreSQL or NGINX—only on the nodes that are actually running those specific
 workloads.
-By keeping our baseline and role profiles perfectly aligned with our Hiera roles,
-we enforce strict, predictable naming conventions and labels across the entire fleet.
-we enforce strict, predictable naming conventions and labels across the entire fleet.
+
+When our baseline and workload-specific profiles match our Hiera roles, naming 
+and labels stay consistent across every node.
 This is what finally allows us to use a single, unified query and dashboard model
 across all of our environments, drastically reducing clutter in the visualization
 layer.
@@ -412,7 +489,7 @@ layer.
 - **Continuous auditing** of exported resources.
 
 ::: notes
-::: {style="font-size: 0.9em;"}
+::: {style="font-size: 1.5em;"}
 We have to be explicit: complete automation must still be strictly governed.
 Guardrails like policy-based autosigning scripts prevent rogue agents from
 spoofing a privileged role or overexposing sensitive metric endpoints.
@@ -432,10 +509,17 @@ infrastructure wide open.
 :::
 
 ::: notes
+::: {style="font-size: 1.5em;"}
 To prove this isn't just theoretical vaporware, we are going to do a live run.
 
-We will spin up a fresh node from scratch and watch it self-register, classify,
+We will spin up a fresh node from scratch and watch it:
+
+self-register
+
+classify itself
+
 and populate directly into Grafana without us touching a single configuration file.
+:::
 :::
 
 ## {.center}
@@ -452,7 +536,7 @@ Demo
 - **Maintains effort** keeping operational overhead flat as nodes scale.
 
 ::: notes
-::: {style="font-size: 0.8em;"}
+::: {style="font-size: 1.5em;"}
 To tie this back to the operational economics: this architecture completely breaks
 the linear relationship between the size of your fleet and the size of your
 monitoring workload. By removing manual interventions, we ensure that adding
@@ -470,10 +554,25 @@ while actively lowering the rate of outages caused by human configuration drift.
 - **Ungoverned attributes** trusted without policy controls
 
 ::: notes
-To wrap things up, these are the real-world traps I ran into while building out
-this live demo environment. Treating this slide as a transition into future
+::: {style="font-size: 1.1em;"}
+To wrap things up, when you visit the Git repo, you will notice that I
+took some shortcuts while building out this live demo environment.
+
+You really don't want to be installing runtime packages in your docker containers. I
+did that solely to demonstrate the automation. Ideally, you would use already-built
+images.
+
+In docker-compose, I refer to the **latest** tag. In production, I would tend to
+use immutable tags to ensure that I am always running the same version of a service.
+The third bullet is a no-no.
+
+There is lots of massaging of how services start, stop, and restart. That is all due to
+the non-availability of systemd in docker containers.
+
+Treating these slides as a transition into future
 hardening work will ensure your automation doesn't accidentally introduce
 security blind spots or fragile dependencies.
+:::
 :::
 
 ## Key Takeaways
@@ -485,10 +584,15 @@ security blind spots or fragile dependencies.
 - **Scale your infrastructure** without increasing team toil
 
 ::: notes
+::: {style="font-size: 1.5em;"}
 To wrap up today's session, these are the core architectural pillars I hope you
-take back to your teams. I invite you all to follow up with me to look at the
-repository, review the Caddy and Puppet configurations, and discuss how to
+take back to your teams.
+
+I invite you all to follow up with me to look at the
+Git repository, review the Docker compose, Caddy, and Puppet configurations,
+and discuss how to
 apply these execution patterns to your own environments.
+:::
 :::
 
 ## Bonus Slide: System Architecture
