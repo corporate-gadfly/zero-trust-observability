@@ -101,7 +101,7 @@
     code span.vs { color: #abe338; } /* VerbatimString */
     code span.wa { color: #dcc6e0; } /* Warning */
   </style>
-  <link rel="stylesheet" href="index_files/libs/revealjs/dist/theme/quarto-65a2b10fe8ea2ee2e17aa6cf7be6a45c.css">
+  <link rel="stylesheet" href="index_files/libs/revealjs/dist/theme/quarto-6e1a13eb0e63e6c6f8a70407cea43c91.css">
   <link href="index_files/libs/revealjs/plugin/quarto-line-highlight/line-highlight.css" rel="stylesheet">
   <link href="index_files/libs/revealjs/plugin/reveal-menu/menu.css" rel="stylesheet">
   <link href="index_files/libs/revealjs/plugin/reveal-menu/quarto-menu.css" rel="stylesheet">
@@ -198,7 +198,7 @@
   <div class="reveal">
     <div class="slides">
 
-<section id="title-slide" data-background-image="images/convocation-hall.png" data-background-size="contain" class="quarto-title-block center">
+<section id="title-slide" data-background-image="images/padlock-with-graphs.png" data-background-opacity="0.5" data-background-size="contain" class="quarto-title-block center">
   <h1 class="title">Automated observability with Puppet in a zero-trust environment</h1>
 
 <div class="quarto-title-authors">
@@ -216,7 +216,7 @@ Development and Operations<br>
 Student Information Systems, ITS</p>
 </div>
 <aside class="notes">
-<div style="font-size: 1.5em;">
+<div style="font-size: 1.2em;">
 <p>You are here because you are interested in observability and are using Puppet already or thinking about it.</p>
 <p>This will be a fairly technical talk. There will be no fancy background graphics, or any memes on display.</p>
 <p>I will demonstrate how to build a modern observability stack with Puppet, show a quick demo of the resulting architecture, and then leave some time for questions at the end.</p>
@@ -242,7 +242,7 @@ Student Information Systems, ITS</p>
 <p>— Rich Hickey</p>
 </div>
 <aside class="notes">
-<div style="font-size: 1.5em;">
+<div style="font-size: 1.2em;">
 <p>The quote is by Rich Hickey, the author of the programming language Clojure which is a dialect of Lips that runs on the JVM.</p>
 <p>I love this quote because it applies directly to how we build infrastructure.</p>
 <p>We keep copy-pasting the same scripts and hand-maintaining files because it is what we know. But that familiarity is actively holding us back from <strong>scaling</strong>. To fix it, we have to recognize where we are getting stuck.</p>
@@ -270,7 +270,7 @@ Student Information Systems, ITS</p>
 </ul>
 </div>
 <aside class="notes">
-<div style="font-size: 1.5em;">
+<div style="font-size: 1.2em;">
 <p>Most teams still run observability as a manual process. New servers require manual updates of monitoring targets.</p>
 <p>You think the service is running on port 8080, but the reality on the ground has changed.</p>
 <p>Certification management is a pain point.</p>
@@ -328,9 +328,9 @@ Student Information Systems, ITS</p>
 <li>Standardize monitoring with layered exporter profiles</li>
 </ul>
 <aside class="notes">
-<div style="font-size: 1.5em;">
+<div style="font-size: 1.2em;">
 <p>This slide serves as our roadmap and contract for the rest of the presentation.</p>
-<p>Every implementation pattern we cover next will map directly back to these five foundational pillars. We will cover each of these patterns in detail in the following slides.</p>
+<p>Every implementation pattern we cover next will map directly back to these five foundational pillars. I will cover each of these patterns in detail in the following slides.</p>
 </div>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -358,10 +358,11 @@ Student Information Systems, ITS</p>
 <aside class="notes">
 <div style="font-size: 1.2em;">
 <p>This slide needs 2 clicks for each bullet (for animation).</p>
-<p>OpenVox/OpenVox Server is for configuration management. If you use anything else for config. mgmt., like Ansible or Chef, please have a conversation with me afterwards. Mention Puppet vs.&nbsp;OpenVox.</p>
+<p>OpenVox/OpenVox Server is for configuration management.</p>
 <p>OpenVoxDB is for storing the inventory of exported resources.</p>
-<p>VictoriaMetrics is a time series database. I chose this over Prometheus because it is much more performant, and it is straightforward to scale, even with the single-node version.</p>
+<p>VictoriaMetrics is the time series database. I chose this over Prometheus because it is much more performant, and it is straightforward to scale, even with the single-node version.</p>
 <p>vmagent which is part of VictoriaMetrics is for scraping metrics from the nodes.</p>
+<p>And Grafana is for visualization.</p>
 </div>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -389,7 +390,9 @@ Student Information Systems, ITS</p>
 </div>
 </div><div class="column" style="width:38%;">
 <div class="fragment fade-in-then-semi-out" style="text-align: left;">
-<p><code>pp_role</code> and what goes into it?</p>
+<div style="font-size: 0.7em;">
+<p>What is <code>pp_role</code>, and what values should it contain?</p>
+</div>
 <ul>
 <li>roles
 <ul>
@@ -397,18 +400,18 @@ Student Information Systems, ITS</p>
 <li>webserver</li>
 </ul></li>
 </ul>
-<p>Hiera data:</p>
+<p>Corresponding Hiera data:</p>
 <pre class="text"><code>roles
 ├── monitoring_scraper.yaml
 └── webserver.yaml</code></pre>
 </div>
 </div></div>
 <aside class="notes">
-<p>CSR stands for Certificate Signing Request. At the moment of provisioning, the node requests its specific role via a certificate extension.</p>
+<p>CSR stands for Certificate Signing Request. At the moment of provisioning, the node requests its specific role via a certificate extension in the CSR.</p>
 <p>This embeds its identity cryptographically at birth.</p>
 <p>And it creates a tamper-proof source of truth that agents cannot override. By keeping node intent attached directly to node identity, we eliminate central merge conflicts in static files and build a pipeline perfectly suited for dynamic, ephemeral fleets.</p>
 <p>For demo purposes, I took a shortcut with autosigning, but you can also use a secure policy script to enforce stricter autosigning rules.</p>
-<p><code>pp_role</code> stands for <strong>Provisioning Profile Role</strong>. What values go in it? Typically, the roles for the server.</p>
+<p><code>pp_role</code> stands for <strong>Provisioning Profile Role</strong>. Typically, it should contain the roles for the individual VM.</p>
 <p>Roles and profiles is not a feature provided by Puppet itself. It is a best-practice design pattern for Puppet that provides an interface between your business logic and reusable Puppet modules.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -448,9 +451,9 @@ Student Information Systems, ITS</p>
 </ul>
 </div>
 <aside class="notes">
-<div style="font-size: 1.5em;">
+<div style="font-size: 1.2em;">
 <p>The node’s role is purely data-driven and attached to the certificate. In this case, line 3 specifies that the node’s role is <strong>webserver</strong>.</p>
-<p>The site manifest is just a thin layer that looks up classes based on the role. Line 3 says Search all Hiera levels for a list called <strong>classes</strong>, merge them into a single list of strings, remove all duplicate class names, and then apply those classes to this node.</p>
+<p>The site manifest is just a thin layer that looks up classes based on the role. Line 3 says to search all Hiera levels for a list called <strong>classes</strong>, merge them into a single list of strings, remove all duplicate class names, and then apply those classes to this node.</p>
 </div>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -492,8 +495,8 @@ Student Information Systems, ITS</p>
 </ul>
 </div>
 <aside class="notes">
-<div style="font-size: 1.5em;">
-<p>You just heard a new term <strong>hiera</strong>. Hiera is a powerful tool for managing configuration data. It allows us to separate data from logic and to create a flexible configuration hierarchy based on the node’s role. Line 4 is an array of classes that will be applied to this node.</p>
+<div style="font-size: 1.2em;">
+<p>Hiera is a powerful tool for managing configuration data. It allows us to separate data from logic and to create a flexible configuration hierarchy based on the node’s role. Here we are showing the array classes, starting on line 4, that will be applied to this node.</p>
 <p>Next up is a small snippet of the hiera configuration that is a single YAML file, and the path shown on line 3 is the node’s trusted role.</p>
 </div>
 <style type="text/css">
@@ -529,10 +532,10 @@ Student Information Systems, ITS</p>
 </ul>
 </div>
 <aside class="notes">
-<div style="font-size: 1.5em;">
+<div style="font-size: 1.2em;">
 <p><strong>This is the key automation mechanism of the entire talk. If you remember only one thing from today, make it this pattern.</strong></p>
 <p>Instead of manually updating static files, nodes now declare their own state at birth. When a node compiles its catalog, it exports its scrape target and stores it into OpenVoxDB.</p>
-<p>Line 1 shows the path for <strong>targets.d</strong> and line 4 onwards is the contents of the file. Line 12 is the tag that we use to specify the exported targets.</p>
+<p>Line 1 shows the path for <strong>targets.d</strong> and line 4 thru line 11 is the contents of the file. Line 12 is the tag that we use to specify the exported targets.</p>
 </div>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -556,7 +559,7 @@ Student Information Systems, ITS</p>
 </ul>
 </div>
 <aside class="notes">
-<div style="font-size: 1.5em;">
+<div style="font-size: 1.2em;">
 <p>The server scraping the metrics, then queries OpenVoxDB, and dynamically pulls in all active targets. This eliminates the need for human intervention when scaling up new infrastructure.</p>
 <p>A new server comes up, it registers itself with OpenVoxDB, and the scraper automatically discovers it as a new target. The discovery can be done on a regular polling interval as well as on-demand. We will see that in the demo.</p>
 </div>
@@ -589,19 +592,19 @@ Student Information Systems, ITS</p>
 <span id="cb8-6"><a href=""></a>  }</span>
 <span id="cb8-7"><a href=""></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div></li>
-<li class="fragment"><p><strong>Import</strong> exporter configurations</p>
+<li class="fragment"><p><strong>Import</strong> metrics exporter configurations</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb9-1"><a href=""></a>import /etc/caddy/conf.d/*.caddy</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div></li>
 </ul>
 </div>
 <aside class="notes">
 <div style="font-size: 1.3em;">
-<p>To achieve zero-trust security by default, we must not have metrics exposed over HTTP in plaintext. There are two things that we can do.</p>
+<p>To achieve zero-trust security by default, we must <strong>not</strong> expose metrics over HTTP in plaintext.</p>
 <ol type="1">
 <li>Caddy is a lightweight, reverse proxy and TLS server. We can use Caddy as a sidecar proxy.</li>
 <li>Luckily, we can use the existing Puppet CA to establish mutual TLS between metrics scraper and our nodes.</li>
 </ol>
 <p>In this snippet we have configured Caddy to authenticate clients with mutual TLS using the Puppet CA.</p>
-<p>Here we are asking Caddy to import all exporter config files from <strong>conf.d</strong>.</p>
+<p>Here we are asking Caddy to import all metrics exporter config files from <strong>conf.d</strong>.</p>
 </div>
 <style type="text/css">
         span.MJX_Assistive_MathML {
@@ -640,8 +643,8 @@ Student Information Systems, ITS</p>
 </ul>
 </div>
 <aside class="notes">
-<div style="font-size: 1.5em;">
-<p>By placing Caddy as a lightweight sidecar, we secure the metrics path with zero changes to the exporter code itself. A lot of times it is quite cumbersome to configure the exporter to add TLS support, let alone mutual TLS.</p>
+<div style="font-size: 1.2em;">
+<p>By placing Caddy as a lightweight sidecar, we secure the metrics path with zero changes to the exporter code itself. A lot of times it is quite cumbersome to configure the exporter to add TLS support, let alone mutual TLS. So, we use Caddy as a reverse proxy.</p>
 <p>And then we ensure that only authenticated scrapers can access the metrics.</p>
 <p>Good luck to anyone else who tries to scrape.</p>
 </div>
@@ -693,7 +696,7 @@ Student Information Systems, ITS</p>
 <div style="font-size: 1.1em;">
 <p>To ensure comprehensive monitoring without creating alert fatigue, we take a layered approach to our exporters.</p>
 <p>A base profile applies to every node.</p>
-<p>What’s contained in this base profile. Every single node automatically receives an OS-level node exporter.</p>
+<p>What’s contained in this base profile. Every node automatically receives a single OS-level node exporter.</p>
 <p>Then, we use our Hiera roles to dynamically layer on specialized exporters—like PostgreSQL or NGINX—only on the nodes that are actually running those specific workloads.</p>
 <p>When our baseline and workload-specific profiles match our Hiera roles, naming and labels stay consistent across every node. This is what finally allows us to use a single, unified query and dashboard model across all of our environments, drastically reducing clutter in the visualization layer.</p>
 </div>
@@ -767,7 +770,7 @@ Student Information Systems, ITS</p>
 <li><strong>Continuous auditing</strong> of exported resources.</li>
 </ul>
 <aside class="notes">
-<div style="font-size: 1.5em;">
+<div style="font-size: 1.2em;">
 <p>We have to be explicit: complete automation must still be strictly governed. Guardrails like policy-based autosigning scripts prevent rogue agents from spoofing a privileged role or overexposing sensitive metric endpoints. You can have absolute speed and zero-touch workflows without leaving your infrastructure wide open.</p>
 </div>
 <style type="text/css">
@@ -794,9 +797,9 @@ Student Information Systems, ITS</p>
 </ul>
 </div>
 <aside class="notes">
-<div style="font-size: 1.5em;">
+<div style="font-size: 1.2em;">
 <p>To prove this isn’t just theoretical vaporware, we are going to do a live run.</p>
-<p>We will spin up a fresh node from scratch and watch it:</p>
+<p>Since the rest of the demo takes fairly long, I left the demo in a stage where a few nodes are already onboarded. We will spin up two fresh nodes from scratch and watch it:</p>
 <p>self-register</p>
 <p>classify itself</p>
 <p>and populate directly into Grafana without us touching a single configuration file.</p>
@@ -828,7 +831,7 @@ Student Information Systems, ITS</p>
 <li><strong>Minimizes effort</strong> by keeping operational overhead flat as the nodes scale.</li>
 </ul>
 <aside class="notes">
-<div style="font-size: 1.5em;">
+<div style="font-size: 1.2em;">
 <p>To tie this back to the operational economics: this architecture completely breaks the linear relationship between the size of your fleet and the size of your monitoring workload. By removing manual interventions, we ensure that adding 1,000 new nodes requires the exact same operator effort as adding a single host, while actively lowering the rate of outages caused by human configuration drift.</p>
 </div>
 <style type="text/css">
@@ -882,7 +885,7 @@ Student Information Systems, ITS</p>
 <li><strong>Scale your infrastructure</strong> without increasing team toil</li>
 </ul>
 <aside class="notes">
-<div style="font-size: 1.5em;">
+<div style="font-size: 1.2em;">
 <p>To wrap up today’s session, these are the core architectural pillars I hope you take back to your teams.</p>
 <p>I invite you all to follow up with me to look at the Git repository, review the Docker compose, Caddy, and Puppet configurations, and discuss how to apply these execution patterns to your own environments.</p>
 </div>
@@ -901,7 +904,7 @@ Student Information Systems, ITS</p>
 <section id="bonus-slide-system-architecture" class="slide level2 center">
 <h2>Bonus Slide: System Architecture</h2>
 
-<img data-src="images/TKF%202026.svg" class="r-stretch"></section>
+<img data-src="images/voxconf-2026.svg" class="r-stretch"></section>
 <section id="section-6" class="slide level2 center">
 <h2></h2>
 <div class="r-fit-text">
@@ -915,9 +918,9 @@ Student Information Systems, ITS</p>
 <img data-src="images/zero-trust-observability.svg" style="width:30.0%" class="r-stretch"></section>
     </div>
   <div class="quarto-auto-generated-content" style="display: none;">
-<p><img src="images/tkf-logo-title-white@2x-400x126.webp" class="slide-logo"></p>
+<p><img src="images/openvox_bildmarke_weiss.svg" class="slide-logo"></p>
 <div class="footer footer-default">
-<p><a href="https://techknowfile.utoronto.ca/">TechKnowFile</a></p>
+<p><a href="https://voxpupuli.org/voxconf/2026/">VoxConf 2026</a></p>
 </div>
 </div></div>
 
