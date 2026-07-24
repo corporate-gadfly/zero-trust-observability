@@ -22,9 +22,8 @@ Haroon Rafique
 :::
 
 ::: {style="font-size: 1.5em;"}
-Manager  
-Development and Operations  
-Student Information Systems, ITS
+Manager, Development and Operations
+University of Toronto
 :::
 
 ::: notes
