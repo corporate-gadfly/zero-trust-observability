@@ -162,7 +162,7 @@ services:
 
 networks:
   default:
-    name: tkf
+    name: iac
 
 volumes:
   victoria-metrics-data:
