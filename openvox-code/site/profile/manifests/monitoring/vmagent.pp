@@ -48,7 +48,9 @@ class profile::monitoring::vmagent {
     require => File['/etc/vmagent'],
   }
 
-  # Collect all exported vmagent targets from other nodes
+  # Collect all exported vmagent targets from all nodes
+  # You may want to replace the following spaceship operator with PuppetDB query,
+  # which is faster for large catalogs and scales better with node count.
   File <<| tag == 'vmagent_target' |>>
 
   # Copy Puppet CA for mTLS client authentication
