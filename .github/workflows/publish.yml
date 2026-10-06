@@ -22,7 +22,7 @@ jobs:
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@8a96df13519ee81fd526f2dfca5962811136661b # v2.2.0
 
-      - name: Render both slide decks
+      - name: Render all slide decks
         run: |
           quarto render voxconf-2026-slides
           quarto render tkf-2026-slides
