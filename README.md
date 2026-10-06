@@ -1,3 +1,5 @@
+[![Quarto Publish](https://github.com/corporate-gadfly/zero-trust-observability/actions/workflows/publish.yml/badge.svg?branch=main)](https://github.com/corporate-gadfly/zero-trust-observability/actions/workflows/publish.yml)
+
 # Infrastructure as Code With Observability
 
 ## Code has been donated
